@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "VoiceTools",
+    name: "VoiceHub",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "VoiceTools", targets: ["VoiceToolsApp"])
+        .executable(name: "VoiceHub", targets: ["VoiceToolsApp"])
     ],
     targets: [
         .executableTarget(

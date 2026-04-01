@@ -31,7 +31,7 @@ final class AudioTranscriber {
         latestText = ""
 
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
-            throw NSError(domain: "VoiceTools", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Speech recognizer unavailable"])
+            throw NSError(domain: "VoiceHub", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Speech recognizer unavailable"])
         }
 
         self.recognizer = recognizer

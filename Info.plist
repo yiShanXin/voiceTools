@@ -5,13 +5,13 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>VoiceTools</string>
+    <string>VoiceHub</string>
     <key>CFBundleIdentifier</key>
-    <string>com.chainup.voicetools</string>
+    <string>com.chainup.voicehub</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>VoiceTools</string>
+    <string>VoiceHub</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -23,8 +23,8 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>VoiceTools uses microphone audio for speech input.</string>
+    <string>VoiceHub uses microphone audio for speech input.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>VoiceTools uses speech recognition to transcribe your voice.</string>
+    <string>VoiceHub uses speech recognition to transcribe your voice.</string>
 </dict>
 </plist>

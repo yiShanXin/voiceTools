@@ -5,6 +5,7 @@ final class AppConfig {
 
     private enum Key {
         static let language = "selectedLanguage"
+        static let triggerKey = "triggerKeyOption"
         static let llmEnabled = "llmEnabled"
         static let apiBaseURL = "llmApiBaseURL"
         static let apiKey = "llmApiKey"
@@ -16,6 +17,9 @@ final class AppConfig {
     private init() {
         if defaults.string(forKey: Key.language) == nil {
             defaults.set(LanguageOption.zhCN.rawValue, forKey: Key.language)
+        }
+        if defaults.string(forKey: Key.triggerKey) == nil {
+            defaults.set(TriggerKeyOption.fnOrRightCommand.rawValue, forKey: Key.triggerKey)
         }
         if defaults.string(forKey: Key.apiBaseURL) == nil {
             defaults.set("https://api.openai.com/v1", forKey: Key.apiBaseURL)
@@ -38,6 +42,16 @@ final class AppConfig {
     var llmEnabled: Bool {
         get { defaults.bool(forKey: Key.llmEnabled) }
         set { defaults.set(newValue, forKey: Key.llmEnabled) }
+    }
+
+    var triggerKey: TriggerKeyOption {
+        get {
+            let value = defaults.string(forKey: Key.triggerKey) ?? TriggerKeyOption.fnOrRightCommand.rawValue
+            return TriggerKeyOption(rawValue: value) ?? .fnOrRightCommand
+        }
+        set {
+            defaults.set(newValue.rawValue, forKey: Key.triggerKey)
+        }
     }
 
     var apiBaseURL: String {

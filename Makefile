@@ -1,7 +1,12 @@
-APP_NAME := VoiceTools
+APP_NAME := VoiceHub
 BUILD_DIR := build
 APP_BUNDLE := $(BUILD_DIR)/$(APP_NAME).app
 EXECUTABLE := .build/release/$(APP_NAME)
+
+-include Makefile.local
+
+CODE_SIGN_IDENTITY ?=
+ALLOW_ADHOC ?= 0
 
 .PHONY: build run install clean
 
@@ -11,7 +16,17 @@ build:
 	mkdir -p $(APP_BUNDLE)/Contents/Resources
 	cp $(EXECUTABLE) $(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)
 	cp Info.plist $(APP_BUNDLE)/Contents/Info.plist
-	codesign --force --deep --sign - $(APP_BUNDLE)
+	@if [ -n "$(CODE_SIGN_IDENTITY)" ]; then \
+		echo "Signing with identity: $(CODE_SIGN_IDENTITY)"; \
+		codesign --force --deep --sign "$(CODE_SIGN_IDENTITY)" "$(APP_BUNDLE)"; \
+	elif [ "$(ALLOW_ADHOC)" = "1" ]; then \
+		echo "Warning: using ad-hoc signing (permissions may need re-authorization after reinstall)."; \
+		codesign --force --deep --sign - "$(APP_BUNDLE)"; \
+	else \
+		echo "Error: no CODE_SIGN_IDENTITY set."; \
+		echo "Set CODE_SIGN_IDENTITY to a stable signing identity (recommended), or run with ALLOW_ADHOC=1."; \
+		exit 1; \
+	fi
 
 run: build
 	open $(APP_BUNDLE)

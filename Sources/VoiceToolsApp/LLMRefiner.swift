@@ -100,7 +100,7 @@ final class LLMRefiner {
 
     func testConnection(settings: LLMSettings, completion: @escaping (Result<String, Error>) -> Void) {
         guard settings.isConfigured else {
-            completion(.failure(NSError(domain: "VoiceTools", code: 1002, userInfo: [NSLocalizedDescriptionKey: "请先完整填写 API Base URL、API Key、Model"])))
+            completion(.failure(NSError(domain: "VoiceHub", code: 1002, userInfo: [NSLocalizedDescriptionKey: "请先完整填写 API Base URL、API Key、Model"])))
             return
         }
 

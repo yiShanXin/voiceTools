@@ -11,6 +11,7 @@ final class AppController: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem?
     private var settingsWindowController: SettingsWindowController?
+    private var keyTestWindowController: KeyTestWindowController?
     private var isRecording = false
 
     private var languageMenuItem: NSMenuItem?
@@ -19,12 +20,15 @@ final class AppController: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
         setupCallbacks()
-        keyMonitor.start()
+        keyMonitor.triggerKeyMode = config.triggerKey
+        let startResult = keyMonitor.start()
+        handleKeyMonitorStartResult(startResult)
         AudioTranscriber.requestPermissions {}
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         keyMonitor.stop()
+        CrashLogger.shared.markCleanExit()
     }
 
     private func setupCallbacks() {
@@ -43,12 +47,16 @@ final class AppController: NSObject, NSApplicationDelegate {
         keyMonitor.onRelease = { [weak self] in
             self?.endRecording()
         }
+
+        keyMonitor.onDebugEvent = { [weak self] event in
+            self?.keyTestWindowController?.append(event: event)
+        }
     }
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "VoiceTools")
+            button.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "VoiceHub")
         }
         rebuildMenu()
     }
@@ -56,10 +64,14 @@ final class AppController: NSObject, NSApplicationDelegate {
     private func rebuildMenu() {
         let menu = NSMenu()
 
-        let hint = NSMenuItem(title: "Hold Fn to Talk", action: nil, keyEquivalent: "")
+        let hint = NSMenuItem(title: config.triggerKey.hintTitle, action: nil, keyEquivalent: "")
         hint.isEnabled = false
         menu.addItem(hint)
         menu.addItem(.separator())
+
+        let triggerKey = NSMenuItem(title: "Trigger Key", action: nil, keyEquivalent: "")
+        triggerKey.submenu = makeTriggerKeySubmenu()
+        menu.addItem(triggerKey)
 
         let language = NSMenuItem(title: "Language", action: nil, keyEquivalent: "")
         language.submenu = makeLanguageSubmenu()
@@ -71,9 +83,26 @@ final class AppController: NSObject, NSApplicationDelegate {
         menu.addItem(llm)
 
         menu.addItem(.separator())
+        let testPanel = NSMenuItem(title: "Key Test Panel...", action: #selector(openKeyTestPanel), keyEquivalent: "")
+        testPanel.target = self
+        menu.addItem(testPanel)
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
 
         statusItem?.menu = menu
+    }
+
+    private func makeTriggerKeySubmenu() -> NSMenu {
+        let submenu = NSMenu(title: "Trigger Key")
+
+        for option in TriggerKeyOption.allCases {
+            let item = NSMenuItem(title: option.menuTitle, action: #selector(selectTriggerKey(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = option.rawValue
+            item.state = (config.triggerKey == option) ? .on : .off
+            submenu.addItem(item)
+        }
+
+        return submenu
     }
 
     private func makeLanguageSubmenu() -> NSMenu {
@@ -176,6 +205,16 @@ final class AppController: NSObject, NSApplicationDelegate {
         rebuildMenu()
     }
 
+    @objc private func selectTriggerKey(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let option = TriggerKeyOption(rawValue: raw) else {
+            return
+        }
+        config.triggerKey = option
+        keyMonitor.triggerKeyMode = option
+        rebuildMenu()
+    }
+
     @objc private func toggleLLM() {
         config.llmEnabled.toggle()
         llmToggleItem?.state = config.llmEnabled ? .on : .off
@@ -197,5 +236,33 @@ final class AppController: NSObject, NSApplicationDelegate {
 
     @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
+    }
+
+    @objc private func openKeyTestPanel() {
+        if keyTestWindowController == nil {
+            keyTestWindowController = KeyTestWindowController()
+        }
+        keyTestWindowController?.showWindow(nil)
+        keyTestWindowController?.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func handleKeyMonitorStartResult(_ result: FnKeyMonitor.StartResult) {
+        switch result {
+        case .started:
+            return
+        case .permissionDenied:
+            let alert = NSAlert()
+            alert.messageText = "Keyboard Monitoring Permission Required"
+            alert.informativeText = "Please enable VoiceHub in System Settings -> Privacy & Security -> Input Monitoring, then restart VoiceHub."
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        case .tapCreationFailed:
+            let alert = NSAlert()
+            alert.messageText = "Keyboard Monitor Failed"
+            alert.informativeText = "VoiceHub could not start key monitoring. Try restarting the app, then re-check Input Monitoring permission."
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 }

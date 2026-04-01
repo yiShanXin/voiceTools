@@ -1,5 +1,7 @@
 import AppKit
 
+CrashLogger.shared.install()
+
 let app = NSApplication.shared
 let delegate = AppController()
 app.delegate = delegate

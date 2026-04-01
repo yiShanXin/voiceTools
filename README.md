@@ -1,4 +1,4 @@
-# VoiceTools
+# VoiceHub
 
 一个基于 Swift / macOS 14+ 的 menu-bar 语音输入应用：按住 `Fn` 录音，松开后自动将转录文本注入当前聚焦输入框。
 
@@ -8,6 +8,7 @@
   - 按下开始录音
   - 松开结束录音并注入文本
   - 吞掉 `Fn` 事件，避免触发系统 emoji 选择器
+  - 支持触发键配置：`Fn` / `Fn or Right Command` / `Right Command`
 - Apple Speech Recognition 流式转录
   - 默认语言 `zh-CN`（开箱即用中文）
   - 支持语言切换：English / 简体中文 / 繁体中文 / 日本语 / 한국어
@@ -40,15 +41,29 @@
 ## 构建与运行
 
 ```bash
-make build    # 构建并打包签名 build/VoiceTools.app
+cp Makefile.local.example Makefile.local  # 首次配置本机签名（只需一次）
+# 编辑 Makefile.local，将 CODE_SIGN_IDENTITY 改成你的证书名
+make build    # 默认读取 Makefile.local 的签名身份
 make run      # 构建后启动 app
-make install  # 安装到 ~/Applications/VoiceTools.app
+make install  # 安装到 ~/Applications/VoiceHub.app
 make clean    # 清理构建产物
+```
+
+如果你只是临时测试，也可以显式使用 ad-hoc：
+
+```bash
+make build ALLOW_ADHOC=1
+```
+
+也可临时覆盖本地配置：
+
+```bash
+make build CODE_SIGN_IDENTITY="Apple Development: Your Name (TEAMID)"
 ```
 
 产物路径：
 
-- `build/VoiceTools.app`
+- `build/VoiceHub.app`
 
 ## 使用方式
 
