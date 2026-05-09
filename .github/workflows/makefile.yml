@@ -1,0 +1,25 @@
+name: Build VoiceHub
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build with make
+      run: make build ALLOW_ADHOC=1
+    
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: VoiceHub-build
+        path: build/VoiceHub.app
+        retention-days: 30
