@@ -3,6 +3,8 @@ name: Build VoiceHub
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'  # 当推送带 v 前缀的标签时触发
   pull_request:
     branches: [ main ]
   workflow_dispatch:  # 允许手动触发
@@ -17,9 +19,25 @@ jobs:
     - name: Build with make
       run: make build ALLOW_ADHOC=1
     
-    - name: Upload build artifact
+    - name: Prepare release artifact
+      run: |
+        cd build
+        zip -r VoiceHub.app.zip VoiceHub.app
+        ls -lh VoiceHub.app.zip
+    
+    - name: Upload build artifact (for CI/CD)
       uses: actions/upload-artifact@v4
       with:
         name: VoiceHub-build
         path: build/VoiceHub.app
         retention-days: 30
+    
+    - name: Create Release and upload
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/VoiceHub.app.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
