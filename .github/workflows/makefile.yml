@@ -18,7 +18,7 @@ jobs:
       run: make build ALLOW_ADHOC=1
     
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: VoiceHub-build
         path: build/VoiceHub.app
